@@ -1,0 +1,29 @@
+{
+    "name": "Nine O' Clock On A Saturday",
+    "version": "1.0.0",
+    "description": "The Piano Man will sing you a song, 9 o' clock every Saturday",
+    "permissions": ["tabs", "alarms", "storage"],
+    "host_permissions": ["<all_urls>"],
+    "content_scripts": [
+      {
+        "matches": ["<all_urls>"],
+        "js": ["timeSync.js", "contentScript.js"]
+      }
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "web_accessible_resources": [
+      {
+        "resources": [ "vidData.json"],
+        "matches": ["<all_urls>"],
+        "extension_ids": []
+      }
+    ],
+    "action": {
+        "default_title": "Nine O' Clock",
+        "default_popup": "popup.html",
+        "default_icon": "pianoman.png"
+    },
+    "manifest_version": 3
+}

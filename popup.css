@@ -1,0 +1,17 @@
+.container {
+    width: 280px;
+    color: #5c5c5c;
+}
+
+.title {
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+button {
+    font-size: x-small;
+}
+
+.slider {
+    padding: 0px;
+  }
