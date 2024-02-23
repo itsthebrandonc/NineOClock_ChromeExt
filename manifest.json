@@ -1,5 +1,5 @@
 {
-    "name": "Nine O' Clock On A Saturday",
+    "name": "Sing Us A Song, Piano Man!",
     "version": "1.0.0",
     "description": "The Piano Man will sing you a song, 9 o' clock every Saturday",
     "permissions": ["tabs", "alarms", "storage"],
@@ -21,7 +21,7 @@
       }
     ],
     "action": {
-        "default_title": "Nine O' Clock",
+        "default_title": "Sing Us A Song, Piano Man!",
         "default_popup": "popup.html",
         "default_icon": "pianoman.png"
     },

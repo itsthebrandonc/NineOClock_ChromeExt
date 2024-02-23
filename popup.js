@@ -1,21 +1,24 @@
 function $(id) { return document.getElementById(id); }
 
 const MessageType = Object.freeze({
-    TEST: "TEST",
-    OPEN: "OPEN",
     SYNC: "SYNC",
     REFRESH: "REFRESH",
+    SYNCVID: "SYNCVID",
+    CHECKSTART: "CHECKSTART",
+    CHECKEND: "CHECKEND",
+    PORT: "PORT",
     HELLO: "HELLO",
     UPDSETTINGS: "UPDSETTINGS",
     SETSETTINGS: "SETSETTINGS",
-    GETSETTINGS: "GETSETTINGS"
+    GETSETTINGS: "GETSETTINGS",
+    UPDURL: "UPDURL",
+    BUFFERPAUSE: "BUFFERPAUSE",
+    BUFFERPLAY: "BUFFERPLAY",
+    VIDLOAD: "VIDLOAD"
     });
-
-var autoSync = true;
 
 function SendMessageToContent(type,value)
 {
-    //chrome.tabs.create({'url':"chrome://newtab"});
     chrome.tabs.query({active: true, lastFocusedWindow: true}, tabs => {
         let currTab = tabs[0];
         if (currTab)
@@ -72,9 +75,6 @@ chrome.runtime.onMessage.addListener((obj, sender, response) => {
 
     switch (type)
     {
-        //case "POPTEST":
-        //    console.log("This is a test message: " + value);
-        //    break;
         case "SETSETTINGS":
             console.log("Set Settings: " + value.everyDay);
             $("chkSync").checked = value.autoSync;
@@ -85,8 +85,8 @@ chrome.runtime.onMessage.addListener((obj, sender, response) => {
     }
 });
 
-console.log("Nine O' Clock - Popup Loaded");
-
 function getSettings() {
     SendMessageToBackground(MessageType.GETSETTINGS,MessageType.GETSETTINGS);
 }
+
+//console.log("Nine O' Clock - Popup Loaded");

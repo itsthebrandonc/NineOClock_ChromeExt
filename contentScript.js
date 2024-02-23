@@ -1,19 +1,15 @@
-//import { SendMessageToBackground, SendMessageToPopup } from "./messenger.js";
-//import { SendMessageToBackground, SendMessageToContent } from './messenger.js';
-
-//import(chrome.runtime.getURL('messenger.js'));
-
 (() => {
     const MessageType = Object.freeze({
-        TEST: "TEST",
-        OPEN: "OPEN",
         SYNC: "SYNC",
+        REFRESH: "REFRESH",
         SYNCVID: "SYNCVID",
+        CHECKSTART: "CHECKSTART",
+        CHECKEND: "CHECKEND",
         PORT: "PORT",
         HELLO: "HELLO",
-        VIDEND: "VIDEND",
-        GETSETTINGS: "GETSETTINGS",
+        UPDSETTINGS: "UPDSETTINGS",
         SETSETTINGS: "SETSETTINGS",
+        GETSETTINGS: "GETSETTINGS",
         UPDURL: "UPDURL",
         BUFFERPAUSE: "BUFFERPAUSE",
         BUFFERPLAY: "BUFFERPLAY",
@@ -27,24 +23,11 @@
     let videoLength;
     let lastPlayerTime;
     let contentPort;
-    let portReady = false;
     let settingAutoSync = true;
-    let firstSettings = true;
     let videoAiring = false;
     let controlVideo = false;
     let isMainTab = false;
-    let onBufferTime = false;
-    
-    /*
-    function SendMessageToPopup(type,value)
-{
-    chrome.runtime.sendMessage({
-        type: "POPTEST",
-        value: "Hello, popup!"
-    });
-}
-*/
-    
+
     function SendMessageToBackground(type,value)
     {
         chrome.runtime.sendMessage({
@@ -60,14 +43,8 @@
         youtubePlayer.muted = false;
         vidURL = window.location.href;
         videoLength = youtubePlayer.duration;
-        //youtubePlayer.pause();
-        //console.log("First Pause");
-        //youtubePlayer.playbackRate = 1;
 
         youtubePlayer.addEventListener('canplay', function () {
-            //youtubePlayer.muted = true;
-            //youtubePlayer.pause = true;
-            //console.log("Vid loaded");
             SendMessageToBackground(MessageType.VIDLOAD,MessageType.VIDLOAD);
         });
 
@@ -95,24 +72,15 @@
             }
         });
         
-        youtubePlayer.addEventListener('ratechange', function() { //Prevents changing playback rate
-            //console.log(controlVideo);
-            
+        youtubePlayer.addEventListener('ratechange', function() { //Prevents changing playback rate 
             if (controlVideo)
                 youtubePlayer.playbackRate = 1;
         });
 
         youtubePlayer.addEventListener('ended', function() {
-            if (controlVideo && !firstSettings)
-                SendMessageToBackground(MessageType.VIDEND,MessageType.VIDEND);
-            //if (contentPort)
-            //{
-                //contentPort.postMessage({type: MessageType.VIDEND, value: MessageType.VIDEND});
-            //}
             videoAiring = false;
             controlVideo = settingAutoSync && videoAiring &&isMainTab;
-            console.log("Control Video: " + controlVideo + ": " + settingAutoSync + "," + videoAiring + "," + isMainTab);
-            
+            //console.log("Control Video: " + controlVideo + ": " + settingAutoSync + "," + videoAiring + "," + isMainTab);
         });
     }
 
@@ -123,14 +91,10 @@
         contentPort.postMessage({type: MessageType.HELLO, value: videoLength});
         contentPort.onMessage.addListener(function(obj) {
             const {type, value} = obj;
-            //console.log("Message received of type: " + type);
             switch(type)
             {
                 case MessageType.HELLO:
-                    portReady = true;
                     console.log("Port connection successful");
-                    //initVideoPlayer();
-                    //determineVideoAiring(value);
                     if (value != undefined)
                         videoAiring = value;
                     contentPort.postMessage({type: MessageType.GETSETTINGS, value: MessageType.GETSETTINGS});
@@ -143,18 +107,16 @@
                     if (vidURL != undefined && value.url != undefined && vidURL != value.url)
                     {
                         contentPort.disconnect();
-                        console.log("Disconnecting wrong URL port (1)");
+                        console.log("Disconnecting wrong URL port");
                     }
                     else
                     {
-                        //console.log("URL Check: " + vidURL + "," + value.url);
                         syncVid(value.time,value.bufferAction);
                     }
                     break;
             }
         });
         contentPort.onDisconnect.addListener(() => {
-            portReady = false;
             console.log("Connection to port has been lost");
         });
     }
@@ -168,8 +130,6 @@
 
         videoAiring = true;
         controlVideo = videoAiring && settingAutoSync && isMainTab;
-
-        //console.log("Video Sync: " + (youtubePlayer.currentTime - correctTimeStamp));
 
         if (bufferAction == MessageType.BUFFERPAUSE)
         {
@@ -207,37 +167,7 @@
         {
             youtubePlayer.playbackRate = 1;
         }
-        else
-        {
-            //if (firstSettings)
-            //    youtubePlayer.play();
-        }
-
-        firstSettings = false;
     }
-    /*
-    function determineVideoAiring(timeTilStart) {
-        switch(true) {
-            case timeTilStart < -1 * videoLength:
-                console.log ("It's past 9. Enjoy your night!");
-                videoAiring = false;
-                break;
-            case timeTilStart < -31:
-                console.log("It's 9 o'clock on a Saturday!");
-                videoAiring = true;
-                break;
-            case timeTilStart < 60:
-                console.log("Starting!!");
-                videoAiring = true;
-                break;
-            default:
-                console.log("Starts In: " + timeTilStart);
-                videoAiring = false;
-                chrome.alarms.create(MessageType.CHECKAIR,{delayInMinutes: timeTilStart / 60});
-                break;
-        }
-    }
-    */
 
     function updateTitle()
     {
@@ -276,17 +206,6 @@
 
         switch (type)
         {
-            case MessageType.TEST:
-                console.log("This is a test message: " + value);
-                //SendMessageToBackground(type,value);
-                //SendMessageToPopup(type,value);
-                break;
-            //case MessageType.SYNCVID:
-            //    syncVid(value);
-            //    break;
-            case MessageType.AUTOSYNC:
-                console.log("AutoSync : " + value);
-                break;
             case MessageType.UPDURL:
                 if (vidURL != value.url)
                 {
@@ -296,10 +215,8 @@
                 if (!isMainTab && value.isMainTab)
                 {
                     console.log("Setting tab");
-                    //vidURL = value.url;
                     isMainTab = true;
                     initVideoPlayer();
-                    firstSettings = true;
                     setSettings(value.autoSync);
                     connectToPort();
                 }
@@ -308,30 +225,4 @@
                 break;
         }
     });
-
-    //document.addEventListener("DOMContentLoaded", async () => { //This is already going to fire after DOM content is loaded (unless you add run_at to manifest)
-      
-    //if (window.location.href === vidURL)
-    //    {
-    //        console.log("Piano Man Page");
-            //firstSettings = true;
-            //initVideoPlayer();
-            //connectToPort();
-    //    }
-        //SendMessageToBackground(MessageType.SYNC,null);
-
-     //   console.log("Nine O' Clock - Content Loaded");
-    //});
-    /*
-    document.addEventListener("locationchange", () => {
-        if (vidURL != window.location.href)
-        {
-            console.log("Changed URL");
-            vidURL = window.location.href;
-        }
-    });
-    */
-    //initVideoPlayer();
-    
-   //SendMessageToBackground(MessageType.CHECKTAB,window.location.href);
 })();
